@@ -91,7 +91,7 @@ class Formatter(object):
                     pa.field('vlan-id', pa.int64()),
                     pa.field('source-ip', pa.string()),
                     pa.field('event-microsecond', pa.int64()),
-                    pa.field('blocked', pa.int64()),
+                    pa.field('blocked', pa.float64()),
                     pa.field('packet-second', pa.int64()),
                     pa.field('linktype', pa.int64()),
                     pa.field('sensor-id', pa.int64()),
@@ -103,7 +103,7 @@ class Formatter(object):
                 ])
 
 
-    def format(self, record, schema, column_data, type_data):
+    def format(self, record, record_prev, schema, column_data, type_data):
         """
         record: Array in Unified2 format
         schema: PyArrow schema object or list of column names
@@ -114,11 +114,14 @@ class Formatter(object):
             _col = column_data.get(column, [])
             if column == "type":
                 _col.append(type_data)
-            elif column == "data" and record.get(column) is not None:
+            elif column == "data" and (record.get(column) is not None or record_prev.get(column) is not None):
                 data = base64.b64encode(record.get(column)).decode("utf-8")
                 _col.append(data)
-            else:
+            elif record.get(column) is not None:
                 _col.append(record.get(column))
+            else:
+                _col.append(record_prev.get(column))
+            
             column_data[column] = _col
 
 class OutputWrapper(object):
@@ -126,6 +129,7 @@ class OutputWrapper(object):
     def __init__(self, filename, fileobj=None):
         self.filename = filename
         self.fileobj = fileobj
+
 
         if self.fileobj is None:
             self.isfile = True
@@ -217,6 +221,7 @@ def main():
     #column_data_packet = {}
     column_data = {}
     array_data = []
+    record_prev = None
 
     # Create schemas
     schema_event = formatter.create_schema_event()
@@ -224,25 +229,31 @@ def main():
     schema = formatter.create_schema()
     #parquet_out=os.path.dirname(os.path.abspath(args.parquet))
 
+    print("########### COLUMN DATA: ",column_data)
     try:
-        #limit = 10
+        limit = 10
         for index,record in enumerate(reader):
             try:
-                #print("########### record: ",record)
-                if isinstance(record, unified2.Event):
-                    formatter.format(record, schema, column_data, type_data="event")
-                elif isinstance(record, unified2.Packet):
-                    formatter.format(record, schema, column_data, type_data="packet")
+                print("########### record: ",record)
+                #if isinstance(record, unified2.Event):
+                #elif isinstance(record, unified2.Packet):
+                #else:
+                #    LOG.warning("Unknown record type: %s: %s" % (
+                #    str(record.__class__), str(record)))
+                if record_prev is not None and record.get("event-id") == record_prev.get("event-id"):
+                    formatter.format(record, record_prev, schema, column_data, type_data="event")
                 else:
-                    LOG.warning("Unknown record type: %s: %s" % (
-                    str(record.__class__), str(record)))
-            #     if index == limit:
-            #         break
+                    LOG.warning("The packet does not belong to the same event")
+
+                record_prev = record
+                if index == limit:
+                    break
             except Exception as err:
                 LOG.error("Failed to encode record as Parquet: %s: %s" % (
                     str(err), str(record)))
                 raise
         df = pd.DataFrame(data=column_data)
+
         for column in schema:
             _col = column_data.get(column.name)
             array_data.append(pa.array(_col, type=column.type))
@@ -258,6 +269,7 @@ def main():
     except TypeError:
         table = pa.Table.from_pandas([df])
     #pq.write_table(table, args.output)
+    print("######## table: ", table)
 
     # Move file to HDFS
     fs = pa.hdfs.connect(host='172.16.64.18', port=9820, user="hadoopuser")
