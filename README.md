@@ -11,19 +11,20 @@ This package provide the tools to create a first prototype where the events gene
 * Python script for sending the files in Unified 2 format to kafka brokers
 * Kafka and Kafka Connect for collecting the alerts from Snort
 * Multinode infrastructure to install a cluster of Hadoop + Yarn + Spark. This use case is deployed in a 3-node cluster.
-<ol>
-  <li> Distributed kafka + Spark Streaming </li>
-  <li> Hadoop Datanode </li>
-  <li> Jupyterhub </li>
-</ol>
+  - Distributed kafka + Spark Streaming
+  - Hadoop Master (Namenode)
+  - Jupyterhub 
 * Jupyterhub with Jupyter Enterprise Gateway for launching kernels using Hadoop Yarn
 
 TODO: This module use Ansible for the deployment of the different tools
 
 ### Ansible 
 
-
-
+(TO-DO) Ansible roles for each service integrated in the platform. 
+- Apsche Hadoop + Yarn.
+- Apache Spark.
+- Apache Kafka containarized
+- Jupyterhub
 
 ### Configure Snort to collect the events
 
