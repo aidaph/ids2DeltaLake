@@ -1,9 +1,0 @@
----
-- name: Install docker requirements 
-  apt: 
-    name: ca-certificates, curl, gnupg, lsb-release
-    update_cache: yes 
-
-- name: Install repo for docker
-  apt_repository:
-    repo: 'deb {{ docker-repo }} {{ ubuntu-version }} 
