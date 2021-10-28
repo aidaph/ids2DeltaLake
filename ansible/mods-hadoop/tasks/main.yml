@@ -1,0 +1,175 @@
+---
+# tasks file for mods-hadoop
+- name: "Install requirements"
+  apt: 
+    name: openjdk-8-jdk, openssh-server, openssh-client
+    update_cache: yes
+
+- name: Create hadoopgroup group
+  group:
+    name: hadoopgroup
+    state: present
+
+- name: create the /hadoop_data directory
+  file:
+    path: /hadoop_data
+    state: directory
+    owner: hadoopuser
+    group: hadoopgroup
+  become: true
+
+- name: create the hadoop_data/hdfs directory
+  file:
+    path: "{{ path_hdfs }}"
+    state: directory
+    owner: hadoopuser
+    group: hadoopgroup
+  become: true
+
+- name: "Create path for HDFS Datanode"
+  file:
+    path: "{{ path_hdfs }}/datanode"
+    state: directory
+    owner: hadoopuser
+    group: hadoopgroup
+  become: true
+  become_user: hadoopuser
+
+- name: "Include hadoop_type"
+  include_tasks: "{{ role_path }}/tasks/{{ hadoop_type_of_node }}.yml"
+
+- name: "Copy ssh key to authorized_keys"
+  authorized_key:
+    user: hadoopuser
+    state: present
+    key: "{{ lookup('file', '/tmp/id_rsa.pub') }}"
+
+
+- name: "Set mode for authorized_keys"
+  file:
+    path: /home/hadoopuser/.ssh/authorized_keys
+    owner: hadoopuser
+    group: hadoopgroup
+    mode: '0600'
+
+- name: Checking if a file exists
+  stat:
+    path: "{{ hadoop_home }}"
+  register: file_data
+
+- name: Report if a file exists
+  debug:
+    msg: "The file or directory exists"
+  when: file_data.stat.exists
+
+- name: "Download {{ hadoop_version }}"
+  get_url: 
+    url: "https://ftp.cixug.es/apache/hadoop/common/hadoop-{{ hadoop_version }}/hadoop-{{ hadoop_version }}.tar.gz"
+    dest: "/opt/hadoop-{{ hadoop_version }}.tar.gz"
+  when: not file_data.stat.exists  
+
+- name: extract and create hadoop directory
+  become: yes
+  unarchive:
+    remote_src: true
+    src: "/opt/hadoop-{{ hadoop_version }}.tar.gz"
+    dest: /opt/
+    list_files: yes
+    owner: hadoopuser
+    group: hadoopgroup
+    mode: "0755"
+  when: not file_data.stat.exists
+
+- name: Rename hadoop folder
+  command: "mv /opt/hadoop-{{ hadoop_version }} {{ hadoop_home }}"
+  when: not file_data.stat.exists
+
+- name: delete the older extracted file
+  file: 
+    path: "/opt/hadoop-{{ hadoop_version }}"
+    state: absent
+
+- name: "configure the environment"
+  template: 
+    src: "{{ item }}"
+    dest: '/opt/hadoop/etc/hadoop/{{ item }}'
+    owner: hadoopuser
+    group: hadoopgroup
+  with_items:
+    - core-site.xml
+    - hdfs-site.xml
+    - mapred-site.xml
+    - yarn-site.xml
+    - workers
+  notify: 
+    - restart hadoop
+    - restart yarn
+
+- name: "Add JAVA_HOME and other environment variable"
+  blockinfile:
+    name: /opt/hadoop/etc/hadoop/hadoop-env.sh
+    block: |
+      export JAVA_HOME={{ java_home }}
+      export HADOOP_HOME={{ hadoop_home }}
+      export HADOOP_LOG_DIR={{ hadoop_home }}/logs
+      export HDFS_NAMENODE_USER=hadoopuser
+      export HDFS_DATANODE_USER=hadoopuser
+      export HDFS_SECONDARYNAMENODE_USER=hadoopuser
+      export YARN_NODEMANAGER_USER=hadoopuser
+      export YARN_RESOURCEMANAGER_USER=hadoopuser
+  notify:
+    - restart hadoop
+    - restart yarn
+
+- name: "Add ENV to hadoopuser .bashrc"
+  blockinfile:
+    name: /home/hadoopuser/.bashrc
+    block: |
+      export HADOOP_HOME={{ hadoop_home }}
+      export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+      export HADOOP_CONF_DIR={{ hadoop_home }}/etc/hadoop
+      export HDFS_NAMENODE_USER=hadoopuser
+      export HDFS_DATANODE_USER=hadoopuser
+      export HDFS_SECONDARYNAMENODE_USER=hadoopuser
+      export JAVA_HOME={{ java_home }}
+      export HADOOP_MAPRED_HOME={{ hadoop_home }}
+      export HADOOP_COMMON_HOME={{ hadoop_home }}
+      export HADOOP_HDFS_HOME={{ hadoop_home }}
+      export YARN_HOME={{ hadoop_home }}
+      export YARN_NODEMANAGER_USER=hadoopuser
+      export YARN_RESOURCEMANAGER_USER=hadoopuser
+  notify:
+    - restart hadoop
+    - restart yarn
+
+- name: source bashrc hadoopuser
+  shell: source /home/hadoopuser/.bashrc
+  args:
+     executable: /bin/bash
+
+     #- name: "Add ENV to root .bashrc"
+     #  become: yes
+     #  blockinfile:
+     #    name: "{{ hadoop_home }}/sbin/start-dfs.sh"
+     #    block: |
+     #      HDFS_NAMENODE_USER=hadoopuser
+     #      HDFS_DATANODE_USER=hadoopuser
+     #      HDFS_SECONDARYNAMENODE_USER=hadoopuser
+     #      YARN_NODEMANAGER_USER=hadoopuser
+     #      YARN_RESOURCEMANAGER_USER=hadoopuser
+     #    insertbefore: "# Start hadoop dfs daemons"
+     #  notify:
+     #    - restart hadoop
+     #    - restart yarn
+
+- name: "Format Namenode"
+  expect:
+    command: /opt/hadoop/bin/hdfs namenode -format
+    responses: 
+      (/.*)Re-format filesystem(.*): "Y"
+  when: hadoop_type_of_node == 'namenode'
+  become: yes
+  #become_user: hadoopuser
+  notify:
+    - restart hadoop
+    - restart yarn

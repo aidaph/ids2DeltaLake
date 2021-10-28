@@ -1,0 +1,39 @@
+---
+# tasks file for mods-hadoop
+- name: "Create user for hadoop"
+  user: 
+    name: hadoopuser
+    group: hadoopgroup
+    generate_ssh_key: yes
+    ssh_key_file: .ssh/id_rsa
+    shell: /bin/bash
+
+- name: create empty file
+  file:
+    path: "/home/hadoopuser/.ssh/authorized_keys"
+    state: touch
+
+- name: Copy rsa key from remote host to Ansible controller
+  fetch:
+    src: /home/hadoopuser/.ssh/id_rsa.pub
+    dest: /tmp/
+    fail_on_missing: yes
+    flat: yes
+  become_user: hadoopuser
+  become: true
+
+- name: "Add DN + IP address in /etc/hosts"
+  become: yes
+  blockinfile:
+    name: /etc/hosts
+    block: |
+      # Hadoop Namenode
+      {{ mods_namenode.ip }} {{ mods_namenode.name }}
+
+- name: "Create path for HDFS Namenode"
+  file:
+    path: "{{ path_hdfs }}/namenode"
+    state: directory
+    owner: hadoopuser
+    group: hadoopgroup
+  become: true

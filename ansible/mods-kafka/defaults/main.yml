@@ -1,0 +1,10 @@
+---
+# defaults file for mods-kafka
+docker-repo-url: https://download.docker.com/linux/ubuntu
+ubuntu-version: focal
+docker-gpg-key: "{{ docker-repo-url }}//gpg"
+docker-repo: "deb [arch=amd64] {{ docker-repo-url }} {{ ubuntu-version}} stable"
+
+docker-compose-version: "1.29.2"
+docker-compose-url: https://github.com/docker/compose/releases/download/{{ docker-compose-version }}/docker-compose-Linux-x86_64
+docker-compose-path: /usr/local/bin/docker-compose

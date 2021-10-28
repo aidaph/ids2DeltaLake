@@ -1,0 +1,34 @@
+---
+# tasks file for mods-hadoop
+- name: "Install requirements"
+  apt: 
+    name: openjdk-8-jdk
+    update_cache: yes
+
+- name: "Download hadoop and extract"
+  unarchive:
+    src: https://dlcdn.apache.org/spark/spark-{{ spark-version }}.0/spark-{{ spark-version }}.0-bin-hadoop{{ spark-version }}.tgz 
+    dest: /opt/hadoop/spark
+    list_files: yes
+    mode: "0755"
+    #checksum: sha512:d62709c3d7144fcaafc60e18d0fa03d7d477cc813e45526f3646030cd87dbf010aeccf3f4ce795b57b08d2884b3a55f91fe9d74ac144992d2dfe444a4bbf34ee 
+
+- name: "configure the environment"
+  template: 
+    src: spark-env.sh.j2
+    dst: /opt/hadoop/spark/conf/spark-env.sh
+
+- name: configure spark defaults config file
+  template:
+    src: spark-defaults.conf.j2
+    dst: /opt/hadoop/spark/conf/spark-defaults.conf
+
+- name: "Add ENV to spark .bashrc"
+  blackinfile:
+    name: /root/.bashrc
+    block: |
+      export SPARK_HOME=$HADOOP_HDFS_HOME/spark
+      export PATH=$PATH:$SPARK_HOME/bin
+  notify:
+    - restart hadoop-dfs
+    - restart yarn

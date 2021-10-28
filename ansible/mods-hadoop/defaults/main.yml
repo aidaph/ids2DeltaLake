@@ -1,0 +1,10 @@
+---
+# defaults file for mods-hadoop
+mods_namenode: { name: test-ansible, ip: 172.16.64.6 }
+hadoop_version: 3.3.1
+hadoop_home: /opt/hadoop
+# The type of the node: datanode / namenode
+hadoop_type_of_node: namenode
+java_home: /usr/lib/jvm/java-8-openjdk-amd64/
+path_hdfs: /hadoop_data/hdfs
+role_path: /etc/ansible/roles/mods-hadoop

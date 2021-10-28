@@ -1,0 +1,14 @@
+---
+# tasks file for mods-hadoop
+- name: "Create user for hadoop"
+  user: 
+    name: hadoopuser
+    group: hadoopgroup
+
+- name: "Add DN + IP address in /etc/hosts"
+  become: yes
+  blockinfile:
+    name: /etc/hosts
+    block: |
+      # Hadoop Namenode
+      {{ mods_datanode.ip }} {{ mods_datanode.name }}

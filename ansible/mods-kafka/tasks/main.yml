@@ -1,0 +1,16 @@
+---
+# tasks file for mods-kafka
+- name: Ensure that docker engine is installed
+  include: install_docker.yml
+
+- name: Install Distributed Kafka using docker-compose
+  template:
+    src: docker-compose.yml
+    dst: /usr/local/src/docker-compose.yml
+
+- name: deploy Docker compose cluster
+  become: true
+  docker_compose:
+     project_src: /usr/local/src/
+     files:
+     - docker-compose.yml

@@ -1,0 +1,5 @@
+- name: Install MODS deployment to transform IDS output to DeltaLake
+  hosts: hadoop-namenode
+  roles:
+    - {role: 'mods-hadoop', hadoop_type_of_node: 'namenode'}
+

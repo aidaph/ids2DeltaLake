@@ -1,0 +1,31 @@
+---
+# handlers file for mods-hadoop
+- name: stop hadoop
+  action: shell {{ hadoop_home }}/sbin/stop-dfs.sh
+  when: hadoop_type_of_node == 'namenode'
+  listen: "restart hadoop"
+
+- name: start hadoop
+  action: shell {{ hadoop_home }}/sbin/start-dfs.sh
+  when: hadoop_type_of_node == 'namenode'
+  listen: "restart hadoop"
+
+- name: stop yarn
+  action: /usr/bin/nohup {{ hadoop_home }}/bin/yarn --daemon stop resourcemanager
+  when: hadoop_type_of_node == 'namenode'
+  listen: "restart yarn"
+
+- name: start yarn
+  action: /usr/bin/nohup {{ hadoop_home }}/bin/yarn --daemon start resourcemanager
+  when: hadoop_type_of_node == 'namenode' 
+  listen: "restart yarn"
+
+- name: stop yarn
+  action: /usr/bin/nohup {{ hadoop_home }}/bin/yarn --daemon stop nodemanager
+  when: hadoop_type_of_node == 'namenode'
+  listen: "restart yarn"
+
+- name: start yarn
+  action: /usr/bin/nohup {{ hadoop_home }}/bin/yarn --daemon start nodemanager
+  when: hadoop_type_of_node == 'namenode'
+  listen: "restart yarn"

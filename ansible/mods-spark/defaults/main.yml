@@ -1,0 +1,5 @@
+---
+# defaults file for mods-spark
+spark-version: 3.2
+spark_env: {"PYSPARK_PYTHON":"/usr/bin/python3"}
+spark_defaults: {}
