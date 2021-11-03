@@ -75,7 +75,7 @@
     src: "/opt/hadoop-{{ hadoop_version }}.tar.gz"
     dest: /opt/
     list_files: yes
-    owner: hadoopuser
+    owner: root
     group: hadoopgroup
     mode: "0755"
   when: not file_data.stat.exists
@@ -93,7 +93,7 @@
   template: 
     src: "{{ item }}"
     dest: '/opt/hadoop/etc/hadoop/{{ item }}'
-    owner: hadoopuser
+    owner: root
     group: hadoopgroup
   with_items:
     - core-site.xml
@@ -104,6 +104,12 @@
   notify: 
     - restart hadoop
     - restart yarn
+
+- name: Change permissions for container executor 
+  file:
+    path: "{{ hadoop_home }}/bin/container-executor"
+    mode: '6050'
+    owner: root 
 
 - name: "Add JAVA_HOME and other environment variable"
   blockinfile:
