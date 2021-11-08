@@ -1,5 +1,9 @@
 ---
 # defaults file for mods-spark
-spark-version: 3.2
+spark_version: 3.2
+mods_namenode: { name: test-ansible, ip: 172.16.64.6 }
 spark_env: {"PYSPARK_PYTHON":"/usr/bin/python3"}
-spark_defaults: {}
+spark_defaults: {"spark.master": "yarn", 
+                 "spark.eventLog.enabled": "true",
+                 "spark.eventLog.dir": "hdfs://{{ mods_namenode.name }}:9820/user/hadoop/spark-logs"}
+spark_home: /opt/hadoop/spark

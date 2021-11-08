@@ -1,34 +1,40 @@
 ---
 # tasks file for mods-hadoop
-- name: "Install requirements"
+- name: Install requirements
   apt: 
     name: openjdk-8-jdk
     update_cache: yes
 
-- name: "Download hadoop and extract"
+- name: Download Spark and extract
+  get_url:
+    url: "https://dlcdn.apache.org/spark/spark-{{ spark_version }}.0/spark-{{ spark_version }}.0-bin-hadoop{{ spark_version }}.tgz" 
+    dest: "/opt/hadoop/spark-{{ spark_version }}.0.tgz"
+
+- name: extract and create spark dir
+  become: yes
   unarchive:
-    src: https://dlcdn.apache.org/spark/spark-{{ spark-version }}.0/spark-{{ spark-version }}.0-bin-hadoop{{ spark-version }}.tgz 
-    dest: /opt/hadoop/spark
+    remote_src: true
+    src: "/opt/hadoop/spark-{{ spark_version }}.0.tgz"
+    dest: /opt/hadoop/
     list_files: yes
     mode: "0755"
-    #checksum: sha512:d62709c3d7144fcaafc60e18d0fa03d7d477cc813e45526f3646030cd87dbf010aeccf3f4ce795b57b08d2884b3a55f91fe9d74ac144992d2dfe444a4bbf34ee 
 
-- name: "configure the environment"
+- name: Rename Spark dir
+  command: "mv /opt/hadoop/spark-{{ spark_version }}.0-bin-hadoop{{spark_version }} {{ spark_home }}"
+
+- name: configure the environment
   template: 
     src: spark-env.sh.j2
-    dst: /opt/hadoop/spark/conf/spark-env.sh
+    dest: "{{ spark_home }}/conf/spark-env.sh"
 
 - name: configure spark defaults config file
   template:
     src: spark-defaults.conf.j2
-    dst: /opt/hadoop/spark/conf/spark-defaults.conf
+    dest: "{{ spark_home }}/conf/spark-defaults.conf"
 
-- name: "Add ENV to spark .bashrc"
-  blackinfile:
-    name: /root/.bashrc
+- name: Add ENV to spark .bashrc
+  blockinfile:
+    name: /home/hadoopuser/.bashrc
     block: |
-      export SPARK_HOME=$HADOOP_HDFS_HOME/spark
+      export SPARK_HOME=/opt/hadoop/spark 
       export PATH=$PATH:$SPARK_HOME/bin
-  notify:
-    - restart hadoop-dfs
-    - restart yarn
