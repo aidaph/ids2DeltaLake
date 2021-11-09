@@ -1,10 +1,12 @@
 ---
 # defaults file for mods-kafka
-docker-repo-url: https://download.docker.com/linux/ubuntu
-ubuntu-version: focal
-docker-gpg-key: "{{ docker-repo-url }}//gpg"
-docker-repo: "deb [arch=amd64] {{ docker-repo-url }} {{ ubuntu-version}} stable"
+docker_repo_url: https://download.docker.com/linux/ubuntu
+ubuntu_version: focal
+docker_gpg_key: "{{ docker_repo_url }}/gpg"
+docker_repo: "deb [arch=amd64] {{ docker_repo_url }} {{ ubuntu_version}} stable"
 
-docker-compose-version: "1.29.2"
-docker-compose-url: https://github.com/docker/compose/releases/download/{{ docker-compose-version }}/docker-compose-Linux-x86_64
-docker-compose-path: /usr/local/bin/docker-compose
+docker_compose_version: "1.29.2"
+docker_compose_url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+docker_compose_path: /usr/local/bin/docker-compose
+
+kafka_ip: "{{ ansible_default_ipv4.address }}"

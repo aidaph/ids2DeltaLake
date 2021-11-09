@@ -1,5 +1,6 @@
 ---
 # handlers file for mods-kafka
----
 - name: restart docker
-  service: "name=docker state=restarted"
+  service: 
+    name: "docker"
+    state: restarted
