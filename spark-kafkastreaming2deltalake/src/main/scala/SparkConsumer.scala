@@ -16,7 +16,6 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 
 object SparkConsumer {
 
-
   val localLogger = Logger.getLogger("SparkConsumer")
 
   def main(args: Array[String]){
@@ -31,7 +30,7 @@ object SparkConsumer {
     val streamingContext = new StreamingContext(sparkSession.sparkContext, Seconds(3))
 
     val kafkaParams = Map[String, Object](
-      "bootstrap.servers" -> "172.16.64.7:9092",
+      "bootstrap.servers" -> "<kafka-ip>:9092",
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
       "group.id" -> "kafka_streaming_group",
@@ -39,7 +38,7 @@ object SparkConsumer {
       "enable.auto.commit" -> (false: java.lang.Boolean)
     )
 
-    val kafkaBroker = "172.16.64.7:9092"
+    val kafkaBroker = "<kafka-ip>:9092"
     val topics = Array("connect-test")
     /* val stream = KafkaUtils.createDirectStream[String,String](
       streamingContext,
@@ -125,15 +124,15 @@ object SparkConsumer {
 
     val dfu2 = sparkSession.readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers","172.16.64.7:9092")
+      .option("kafka.bootstrap.servers","<kafka-ip>:9092")
       .option("subscribe", "snort3-U2events")
       .load()
       .select(col("value").cast("string"))
 
     val dfjson = sparkSession.readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers","172.16.64.7:9092")
-      .option("subscribe", "connect-test")
+      .option("kafka.bootstrap.servers","<kafka-ip>:9092")
+      .option("subscribe", "snort3-json")
       .load()
       .select(col("value").cast("string"))
 
@@ -152,46 +151,14 @@ object SparkConsumer {
     .select(from_json(col("value"), jsonSchema).as("data"))
     .select("data.*")
 
-
-    //df_json.writeStream
-    //  .format("console")
-    //  .option("truncate","false")
-    //  .start().awaitTermination()
-
     /* Export data to a persistence dataset in HDFS */
     df_json.writeStream 
         .format("delta")
         .trigger(Trigger.ProcessingTime("60 seconds")) // only change in query
         .queryName("kafkaStreams")
         .outputMode("append")
-        .option("checkpointLocation","hdfs://172.16.64.18:9820/snort-events/_checkpoints/elt-from-json")
-        .start("hdfs://172.16.64.18:9820/snort-events")
-    //    //.option("checkpointLocation", "/delta/events/_checkpoints/elt-from-json")
-    //    //.start("/delta/events")
+        .option("checkpointLocation","hdfs://<hadoop-namenode>:9820/snort-events/_checkpoints/elt-from-json")
+        .start("hdfs://<hadoop-namenode>:9820/snort-events")
         .awaitTermination()
-
-    //sparkSession.readStream
-    //  .format("delta")
-    //  .load("/delta/events")
-
-
-//    DeltaTable.createOrReplace(sparkSession)
-//      .tableName("snort-event")
-//      .addColumn("sensor-id", IntegerType)
-//      .addColumn("event-id", IntegerType)
-//      .addColumn("event-second", IntegerType)
-//      .addColumn("packend-second", IntegerType)
-//      .addColumn("packet-microsecond", IntegerType)
-//      .addColumn("linktype", IntegerType)
-//      .addColumn("length", IntegerType)
-//      .addColumn("data", StringType)
-//      .addColumn("event-microsecond", IntegerType)
-//      .addColumn("generator-id", IntegerType)
-//      .addColumn("signature-id", IntegerType)
-//      .addColumn("signature-revision", IntegerType)
-//      .addColumn("classification-id", IntegerType)
-//      .property("description","table with snort event data")
-//      .execute()
-
   }  
 }
