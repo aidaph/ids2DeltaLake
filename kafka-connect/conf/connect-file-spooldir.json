@@ -1,0 +1,15 @@
+{
+  "name": "local-file-source",
+  "config": {
+    "connector.class":"com.github.jcustenborder.kafka.connect.spooldir.SpoolDirJsonSourceConnector",
+    "tasks.max":"8",
+    "topic":"connect-test",
+    "finished.path":"/tmp/spooldir/finished",
+    "input.path":"/snort-data/",
+    "error.path":"/tmp/spooldir/error",
+    "input.file.pattern":".*_alert_json.txt",
+    "cleanup.policy":"NONE",
+    "key.schema":"{\"name\":\"com.github.jcustenborder.kafka.connect.model.Key\",\"type\":\"STRUCT\",\"isOptional\":false,\"fieldSchemas\":{}}",
+    "value.schema" : "{ \"name\" : \"com.github.jcustenborder.kafka.connect.model.Value\", \"type\" : \"STRUCT\", \"isOptional\" : false,\n \"fieldSchemas\" : {\"seconds\" : {\"type\" : \"INT64\",\n \"isOptional\" : false},\n \"action\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"class\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"dir\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"dst_ad\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"dst_ap\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"dst_port\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"eth_dst\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"eth_len\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"eth_src\" : {\"type\" : \"STRING\",\n \"isOptional\": true},\n \"eth_src\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"eth_type\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"gid\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"iface\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"ip_id\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"ip_len\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"msg\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"mpls\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"pkt_num\" : {\"type\" : \"INT64\",\n \"isOptional\" : true},\n \"priority\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"proto\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"rev\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"rule\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"service\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"sid\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"src_addr\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"src_ap\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"src_port\" : {\"type\" : \"INT16\",\n \"isOptional\" : true},\n \"cp_ack\" : {\"type\" : \"INT64\",\n \"isOptional\" : true},\n \"tcp_flags\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"tcp_len\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"tcp_seq\" : {\"type\" : \"INT64\",\n \"isOptional\" : true},\n \"tcp_win\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"tos\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"ttl\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"vlan\" : {\"type\" : \"INT8\",\n \"isOptional\" : true},\n \"timestamp\" : {\"type\" : \"STRING\",\n \"isOptional\" : true},\n \"b64_data\" : {\"type\" : \"STRING\",\n \"isOptional\" : true}}}"
+  }
+}

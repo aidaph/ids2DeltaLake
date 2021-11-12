@@ -121,7 +121,7 @@ class Formatter(object):
                 _col.append(record.get(column))
             else:
                 _col.append(record_prev.get(column))
-            
+
             column_data[column] = _col
 
 class OutputWrapper(object):
@@ -262,7 +262,7 @@ def main():
             LOG.error("%s: Is this a unified2 file?" % (err))
         else:
             LOG.error(err)
-    
+
     ## Write data in parquet
     try:
         table = pa.Table.from_pandas(df)
@@ -272,7 +272,7 @@ def main():
     print("######## table: ", table)
 
     # Move file to HDFS
-    fs = pa.hdfs.connect(host='172.16.64.18', port=9820, user="hadoopuser")
+    fs = pa.hdfs.connect(host='hadoop-namenode', port=9820, user="hadoopuser")
     #pq.write_to_dataset(table, root_path='/user/hadoop/parquet/snort_alerts1.parquet', filesystem=fs)
     pq.write_to_dataset(table, root_path=args.parquet, filesystem=fs)
 
